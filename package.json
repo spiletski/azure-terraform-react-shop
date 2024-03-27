@@ -23,7 +23,8 @@
     "cloudfront:update:build:deploy": "npm run cloudfront:setup && npm run cloudfront:build:deploy",
     "cloudfront:update:build:deploy:nc": "npm run cloudfront:setup && npm run cloudfront:build:deploy:nc",
     "serverless:remove": "sls remove",
-    "deploy": "npm run build && az storage blob upload-batch -s './dist' -d '$web' --account-name 'spiletskistoragene001' --overwrite"
+    "showURL": "az storage account show -n spiletskistorageacc02 -g myTFResourceGroup --query primaryEndpoints.web --output tsv",
+    "deploy": "npm run build && az storage blob upload-batch -s './dist' -d '$web' --account-name 'spiletskistoragene001' --overwrite",
   },
   "dependencies": {
     "@emotion/react": "^11.9.3",
