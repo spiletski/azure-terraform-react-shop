@@ -14,8 +14,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "myTFResourceGroup"
-  location = "westus2"
+  name     = var.resource_group_name
+  location = var.resource_group_location
 }
 
 resource "azurerm_storage_account" "front_end_storage_account" {
