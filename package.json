@@ -1,7 +1,10 @@
 {
   "name": "azure-terraform-react-shop",
   "version": "1.0.0",
-  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=10"
+  },
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
@@ -23,15 +26,16 @@
     "cloudfront:update:build:deploy": "npm run cloudfront:setup && npm run cloudfront:build:deploy",
     "cloudfront:update:build:deploy:nc": "npm run cloudfront:setup && npm run cloudfront:build:deploy:nc",
     "serverless:remove": "sls remove",
-    "showURL": "az storage account show -n spiletskistorageacc02 -g myTFResourceGroup --query primaryEndpoints.web --output tsv",
+    "showURL": "az storage account show -n spiletskistorageacc02 -g rg-frontend-sand-ne-001 --query primaryEndpoints.web --output tsv",
     "deploy": "npm run build && az storage blob upload-batch -s './dist' -d '$web' --account-name 'spiletskistorageacc02' --overwrite"
   },
   "dependencies": {
-    "@emotion/react": "^11.9.3",
-    "@emotion/styled": "^11.9.3",
-    "@mui/icons-material": "^5.8.4",
-    "@mui/material": "^5.8.7",
-    "@mui/styles": "^5.8.7",
+    "@azure/functions": "^4.4.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.15",
+    "@mui/material": "^5.15.15",
+    "@mui/styles": "^5.15.15",
     "@types/yup": "^0.29.14",
     "axios": "^0.27.2",
     "formik": "^2.2.9",
@@ -47,8 +51,8 @@
     "@testing-library/user-event": "^14.2.1",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
-    "@typescript-eslint/eslint-plugin": "^5.30.5",
-    "@typescript-eslint/parser": "^5.30.5",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0",
     "@vitejs/plugin-react": "^1.3.2",
     "@vitest/ui": "^0.18.0",
     "c8": "^7.11.3",
@@ -62,14 +66,17 @@
     "serverless": "^3.20.0",
     "serverless-finch": "^4.0.0",
     "serverless-s3-cleaner": "^2.0.1",
-    "typescript": "^4.7.4",
+    "typescript": "^4.2.0",
     "vite": "^2.9.13",
     "vitest": "^0.17.1"
   },
   "msw": {
     "workerDirectory": "public"
   },
-  "engines": {
-    "node": ">=14.0.0"
+  "overrides": {
+    "@mui/styles": {
+      "react": ">=18.2.0",
+      "react-dom": ">=18.2.0"
+    }
   }
 }

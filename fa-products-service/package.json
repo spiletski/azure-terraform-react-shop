@@ -1,0 +1,28 @@
+{
+  "name": "fa-products-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/src/functions/*.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\"",
+    "deploy": "func azure functionapp publish spiletski-products-service-ne-001"
+  },
+  "dependencies": {
+    "@azure/app-configuration": "^1.5.0"
+  },
+  "devDependencies": {
+    "@azure/functions": "^4.0.0",
+    "@types/node": "18.x",
+    "azure-functions-core-tools": "^4.x",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.4.5"
+  },
+  "resolutions": {
+    "@types/react": "17.0.2"
+  }
+}
