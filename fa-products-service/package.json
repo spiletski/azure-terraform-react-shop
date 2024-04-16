@@ -11,7 +11,13 @@
     "start": "func start --verbose",
     "test": "echo \"No tests yet...\"",
     "deploy": "npm run build && func azure functionapp publish azure-app-products-service-ne-001",
-    "deploy:settings": "npm run deploy --publish-settings-only"
+    "deploy:staging": "npm run build && func azure functionapp publish azure-app-products-service-ne-001 --slot staging",
+    "deploy:settings": "npm run deploy --publish-settings-only",
+    "slots:view": "az functionapp deployment slot list --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1",
+    "slots:add": "az functionapp deployment slot create --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging",
+    "slots:swap:production": "az functionapp deployment slot swap --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging --target-slot \"\"",
+    "slots:swap:staging": "az functionapp deployment slot swap --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging --target-slot production",
+    "slots:remove:staging": "az functionapp deployment slot delete --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging"
   },
   "dependencies": {
     "@azure/app-configuration": "^1.5.0"
