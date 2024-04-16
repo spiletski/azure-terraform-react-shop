@@ -8,9 +8,10 @@
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
-    "start": "func start",
+    "start": "func start --verbose",
     "test": "echo \"No tests yet...\"",
-    "deploy": "func azure functionapp publish spiletski-products-service-ne-001"
+    "deploy": "npm run build && func azure functionapp publish azure-app-products-service-ne-001",
+    "deploy:settings": "npm run deploy --publish-settings-only"
   },
   "dependencies": {
     "@azure/app-configuration": "^1.5.0"
@@ -18,11 +19,15 @@
   "devDependencies": {
     "@azure/functions": "^4.0.0",
     "@types/node": "18.x",
+    "@types/react": "^18.2.75",
     "azure-functions-core-tools": "^4.x",
     "rimraf": "^5.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^4.4.4"
   },
-  "resolutions": {
-    "@types/react": "17.0.2"
+  "overrides": {
+    "@mui/styles": {
+      "react": ">=18.2.0",
+      "react-dom": ">=18.2.0"
+    }
   }
 }

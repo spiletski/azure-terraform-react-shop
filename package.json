@@ -26,8 +26,8 @@
     "cloudfront:update:build:deploy": "npm run cloudfront:setup && npm run cloudfront:build:deploy",
     "cloudfront:update:build:deploy:nc": "npm run cloudfront:setup && npm run cloudfront:build:deploy:nc",
     "serverless:remove": "sls remove",
-    "showURL": "az storage account show -n spiletskistorageacc02 -g rg-frontend-sand-ne-001 --query primaryEndpoints.web --output tsv",
-    "deploy": "npm run build && az storage blob upload-batch -s './dist' -d '$web' --account-name 'spiletskistorageacc02' --overwrite"
+    "showURL": "az storage account show -n azureappne1 -g rg-frontend-app-ne-1 --query primaryEndpoints.web --output tsv",
+    "deploy": "npm run build && az storage blob upload-batch -s './dist' -d '$web' --account-name 'azureappne1' --overwrite"
   },
   "dependencies": {
     "@azure/functions": "^4.4.0",

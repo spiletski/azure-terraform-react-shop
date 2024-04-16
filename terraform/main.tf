@@ -13,77 +13,61 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "front_end_rg" {
+
+resource "azurerm_resource_group" "azure_app" {
   name     = var.resource_group_name
   location = var.resource_group_location
 }
 
-resource "azurerm_storage_account" "front_end_storage_account" {
-  name     = "spiletskistorageacc02"
+resource "azurerm_storage_account" "azure_app_storage_account" {
+  name     = "azureappne1"
   location = var.resource_group_location
 
   account_replication_type = "LRS"
   account_tier             = "Standard"
   account_kind             = "StorageV2"
-  resource_group_name      = azurerm_resource_group.front_end_rg.name
+  resource_group_name      = var.resource_group_name
 
   static_website {
     index_document = "index.html"
   }
 }
 
-resource "azurerm_resource_group" "product_service_rg" {
-  location = var.resource_group_location
-  name     = "rg-product-service-sand-ne-001"
-}
-
-resource "azurerm_storage_account" "products_service_fa" {
-  name     = "spiletskistgeproducts02"
-  location = var.resource_group_location
-
-  account_replication_type = "LRS"
-  account_tier             = "Standard"
-  account_kind             = "StorageV2"
-
-  resource_group_name = azurerm_resource_group.product_service_rg.name
-}
-
-resource "azurerm_storage_share" "products_service_fa" {
+resource "azurerm_storage_share" "azure_app" {
   name  = "fa-products-service-share"
   quota = 2
 
-  storage_account_name = azurerm_storage_account.products_service_fa.name
+  storage_account_name = azurerm_storage_account.azure_app_storage_account.name
 }
 
-resource "azurerm_service_plan" "product_service_plan" {
+resource "azurerm_service_plan" "azure_app" {
   name     = "asp-product-service-sand-ne-001"
   location = var.resource_group_location
 
   os_type  = "Windows"
   sku_name = "Y1"
 
-  resource_group_name = azurerm_resource_group.product_service_rg.name
+  resource_group_name = var.resource_group_name
 }
 
-resource "azurerm_application_insights" "products_service_fa" {
+resource "azurerm_application_insights" "azure_app" {
   name             = "appins-fa-products-service-sand-ne-001"
   application_type = "web"
   location         = var.resource_group_location
 
-
-  resource_group_name = azurerm_resource_group.product_service_rg.name
+  resource_group_name = var.resource_group_name
 }
 
 
-resource "azurerm_windows_function_app" "products_service" {
-  name     = "spiletski-products-service-ne-001"
+resource "azurerm_windows_function_app" "azure_app" {
+  name     = "azure-app-products-service-ne-001"
   location = var.resource_group_location
 
-  service_plan_id     = azurerm_service_plan.product_service_plan.id
-  resource_group_name = azurerm_resource_group.product_service_rg.name
+  service_plan_id     = azurerm_service_plan.azure_app.id
+  resource_group_name = azurerm_resource_group.azure_app.name
 
-  storage_account_name       = azurerm_storage_account.products_service_fa.name
-  storage_account_access_key = azurerm_storage_account.products_service_fa.primary_access_key
+  storage_account_name       = azurerm_storage_account.azure_app_storage_account.name
+  storage_account_access_key = azurerm_storage_account.azure_app_storage_account.primary_access_key
 
   functions_extension_version = "~4"
   builtin_logging_enabled     = false
@@ -91,15 +75,16 @@ resource "azurerm_windows_function_app" "products_service" {
   site_config {
     always_on = false
 
-    application_insights_key               = azurerm_application_insights.products_service_fa.instrumentation_key
-    application_insights_connection_string = azurerm_application_insights.products_service_fa.connection_string
+    application_insights_key               = azurerm_application_insights.azure_app.instrumentation_key
+    application_insights_connection_string = azurerm_application_insights.azure_app.connection_string
 
     # For production systems set this to false, but consumption plan supports only 32bit workers
     use_32_bit_worker = true
 
     # Enable function invocations from Azure Portal.
     cors {
-      allowed_origins = ["https://portal.azure.com"]
+      allowed_origins = ["https://portal.azure.com", "https://azureappne1.z16.web.core.windows.net", "https://apim-mgt-service-ne-003.azure-api.net", "https://azureappne1.z16.web.core.windows.net"
+      ]
     }
 
     application_stack {
@@ -108,8 +93,8 @@ resource "azurerm_windows_function_app" "products_service" {
   }
 
   app_settings = {
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.products_service_fa.primary_connection_string
-    WEBSITE_CONTENTSHARE                     = azurerm_storage_share.products_service_fa.name
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = azurerm_storage_account.azure_app_storage_account.primary_connection_string
+    WEBSITE_CONTENTSHARE                     = azurerm_storage_share.azure_app.name
   }
 
   # The app settings changes cause downtime on the Function App. e.g. with Azure Function App Slots
@@ -125,17 +110,17 @@ resource "azurerm_windows_function_app" "products_service" {
   }
 }
 
-resource "azurerm_app_configuration" "products_config" {
+resource "azurerm_app_configuration" "azure_app" {
   location            = var.resource_group_location
-  name                = "rgProductServiceSandNe001AppConfig"
-  resource_group_name = azurerm_resource_group.product_service_rg.name
+  name                = "azure-app-config"
+  resource_group_name = azurerm_resource_group.azure_app.name
 
-  sku = "free"
+  sku = "standard"
 }
 
 resource "azurerm_api_management" "core_apim" {
-  location        = var.resource_group_location
-  name            = "apim-mgt-service-ne-001"
+  location        = "northeurope"
+  name            = "apim-mgt-service-ne-003"
   publisher_email = "stanislau_piletski@epam.com"
   publisher_name  = "Stanislau Piletski"
 
@@ -155,21 +140,21 @@ resource "azurerm_api_management_api" "products_api" {
 }
 
 data "azurerm_function_app_host_keys" "products_keys" {
-  name = azurerm_windows_function_app.products_service.name
+  name                = azurerm_windows_function_app.azure_app.name // azurerm_windows_function_app.products_service.name
   resource_group_name = var.azurerm_resource_group_apim_name
 }
 
 resource "azurerm_api_management_backend" "products_fa" {
-  name = "products-service-backend"
+  name                = "products-service-backend"
   resource_group_name = var.azurerm_resource_group_apim_name
   api_management_name = azurerm_api_management.core_apim.name
-  protocol = "http"
-  url = "https://${azurerm_windows_function_app.products_service.name}.azurewebsites.net/api"
-  description = "Products API"
+  protocol            = "http"
+  url                 = "https://${azurerm_windows_function_app.azure_app.name}.azurewebsites.net/api"
+  description         = "Products API"
 
   credentials {
     certificate = []
-    query = {}
+    query       = {}
 
     header = {
       "x-functions-key" = data.azurerm_function_app_host_keys.products_keys.default_function_key
@@ -209,4 +194,20 @@ resource "azurerm_api_management_api_operation" "get_products" {
   operation_id        = "get-products"
   resource_group_name = var.azurerm_resource_group_apim_name
   url_template        = "/products"
+}
+
+resource "azurerm_api_management_api_operation" "get_product_by_id" {
+  operation_id        = "get-product-by-id"
+  api_management_name = azurerm_api_management.core_apim.name
+  api_name            = azurerm_api_management_api.products_api.name
+  display_name        = "Get Product by Id"
+  method              = "GET"
+  resource_group_name = var.azurerm_resource_group_apim_name
+  url_template        = "/products/{id}"
+
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
 }
