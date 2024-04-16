@@ -115,7 +115,7 @@ resource "azurerm_app_configuration" "azure_app_free" {
   name                = "azure-free-app-config"
   resource_group_name = azurerm_resource_group.azure_app.name
 
-  sku = "free"
+  sku = "standard"
 }
 
 resource "azurerm_api_management" "core_apim" {
