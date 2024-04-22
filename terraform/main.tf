@@ -110,12 +110,12 @@ resource "azurerm_windows_function_app" "azure_app" {
   }
 }
 
-resource "azurerm_app_configuration" "azure_app" {
+resource "azurerm_app_configuration" "azure_app_free" {
   location            = var.resource_group_location
-  name                = "azure-app-config"
+  name                = "azure-free-app-config"
   resource_group_name = azurerm_resource_group.azure_app.name
 
-  sku = "standard"
+  sku = "free"
 }
 
 resource "azurerm_api_management" "core_apim" {
