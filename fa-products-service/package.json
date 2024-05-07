@@ -5,6 +5,8 @@
   "main": "dist/src/functions/*.js",
   "scripts": {
     "build": "tsc",
+    "populate1": "tsc ./src/populate-data.ts && node ./src/populate-data.js",
+    "populate": "node --env-file=.env ./src/populate-data.js",
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
@@ -12,7 +14,7 @@
     "test": "echo \"No tests yet...\"",
     "deploy": "npm run build && func azure functionapp publish azure-app-products-service-ne-001",
     "deploy:staging": "npm run build && func azure functionapp publish azure-app-products-service-ne-001 --slot staging",
-    "deploy:settings": "npm run deploy --publish-settings-only",
+    "deploy:settings": "func azure functionapp publish azure-app-products-service-ne-001 --publish-settings-only",
     "slots:view": "az functionapp deployment slot list --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1",
     "slots:add": "az functionapp deployment slot create --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging",
     "slots:swap:production": "az functionapp deployment slot swap --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging --target-slot \"\"",
@@ -20,7 +22,9 @@
     "slots:remove:staging": "az functionapp deployment slot delete --name azure-app-products-service-ne-001 --resource-group rg-frontend-app-ne-1 --slot staging"
   },
   "dependencies": {
-    "@azure/app-configuration": "^1.5.0"
+    "@azure/app-configuration": "^1.5.0",
+    "@azure/cosmos": "^4.0.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@azure/functions": "^4.0.0",

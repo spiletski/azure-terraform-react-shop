@@ -9,3 +9,7 @@ variable "resource_group_location" {
 variable "azurerm_resource_group_apim_name" {
   default = "rg-frontend-app-ne-1"
 }
+
+variable "cosmos_db" {
+  default = "products-db"
+}
