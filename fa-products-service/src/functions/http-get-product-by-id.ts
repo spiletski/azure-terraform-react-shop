@@ -1,21 +1,33 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { AppConfigurationClient } from "@azure/app-configuration";
+import { getContainers } from "../db/connections";
 
 export async function httpGetProductById(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
+
     const { productId } = request.params;
+    context.log(`Product id: `, productId);
 
-    const connection_string = process.env.AZURE_APP_CONFIG_CONNECTION_STRING;
-    const client = new AppConfigurationClient(connection_string);
-    const { value } = await client.getConfigurationSetting({ key: "DATA_FROM_APP_CONFIG" });
-    const product = JSON.parse(value).find(({ id }) => productId === id);
+    const [productsContainer, stocksContainer] = await getContainers(context);
 
-    return product ? { status: 200, jsonBody: {...product}} : { status: 404, body: 'Product not found' };
+    const queryProduct = `SELECT * FROM c WHERE c.id = '${productId}'`;
+    const { resources: products } = await productsContainer.items.query(queryProduct).fetchAll();
+    const product = products[0];
+
+    if(!product) return { status: 404, body: `Product with id ${productId} not found` };
+
+    const queryStock = `SELECT * FROM c WHERE c.product_id = '${productId}'`;
+    const { resources: stocks } = await stocksContainer.items.query(queryStock).fetchAll();
+    const stock = stocks[0];
+
+    if(!stock) return { status: 404, body: `Product with id ${productId} not found` };
+
+    const count = stock?.count ?? 0;
+    return { status: 200, jsonBody: {...product, stock: count }};
 }
 
 app.http('http-get-product-by-id', {
-    methods: ['GET', 'POST'],
+    methods: ['GET'],
     authLevel: 'anonymous',
-    route: 'products/{productId}',
+    route: 'products/{productId:guid}',
     handler: httpGetProductById
 });

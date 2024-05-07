@@ -1,14 +1,23 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { AppConfigurationClient } from '@azure/app-configuration';
+import { getContainers } from "../db/connections";
 
 export async function httpGetProductList(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
-    const connection_string = process.env.AZURE_APP_CONFIG_CONNECTION_STRING;
-    const client = new AppConfigurationClient(connection_string);
-    const { value } = await client.getConfigurationSetting({ key: "DATA_FROM_APP_CONFIG" });
+    const [productsContainer, stocksContainer] = await getContainers(context);
 
-    return {  status: 200,  jsonBody: JSON.parse(value) };
+    const  { resources: products } = await productsContainer.items.readAll().fetchAll();
+    const { resources: stocks } = await stocksContainer.items.readAll().fetchAll();
+
+    const productsWithStocks = products.map((product) => {
+        const productWithStock  = stocks.find(stock => product.id === stock.product_id);
+        return {
+            ...product,
+            stocks: productWithStock?.count ?? 0,
+        }
+    })
+
+    return {  status: 200,  jsonBody: productsWithStocks };
 }
 
 app.http('http-get-product-list', {
