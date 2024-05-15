@@ -60,7 +60,7 @@ resource "azurerm_application_insights" "azure_app" {
 
 
 resource "azurerm_windows_function_app" "azure_app" {
-  name     = "azure-app-products-service-ne-001"
+  name     = "azure-app-products-service-ne-001" //https://azure-app-products-service-ne-001.azurewebsites.net
   location = var.resource_group_location
 
   service_plan_id     = azurerm_service_plan.azure_app.id
@@ -140,7 +140,7 @@ resource "azurerm_api_management_api" "products_api" {
 }
 
 data "azurerm_function_app_host_keys" "products_keys" {
-  name                = azurerm_windows_function_app.azure_app.name // azurerm_windows_function_app.products_service.name
+  name                = azurerm_windows_function_app.azure_app.name
   resource_group_name = var.azurerm_resource_group_apim_name
 }
 
@@ -172,6 +172,20 @@ resource "azurerm_api_management_api_policy" "api_policy" {
     <inbound>
         <set-backend-service backend-id="${azurerm_api_management_backend.products_fa.name}"/>
         <base/>
+        <cors>
+            <allowed-origins>
+                <origin>*</origin>
+            </allowed-origins>
+            <allowed-methods>
+                <method>*</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>*</header>
+            </allowed-headers>
+            <expose-headers>
+                <header>*</header>
+            </expose-headers>
+        </cors>
     </inbound>
     <backend>
         <base/>
@@ -184,6 +198,68 @@ resource "azurerm_api_management_api_policy" "api_policy" {
     </on-error>
  </policies>
 XML
+}
+
+# cosmos account creation
+resource "azurerm_cosmosdb_account" "cosmos_app" {
+  location            = var.resource_group_location
+  name                = "azure-cosmos-app-sand-ne-001"
+  offer_type          = "Standard"
+  resource_group_name = var.resource_group_name
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Eventual"
+  }
+
+  capabilities {
+    name = "EnableServerless"
+  }
+
+  geo_location {
+    failover_priority = 0
+    location          = "North Europe"
+  }
+}
+# cosmos db creation
+resource "azurerm_cosmosdb_sql_database" "products_app" {
+  account_name        = azurerm_cosmosdb_account.cosmos_app.name
+  name                = var.cosmos_db
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_cosmosdb_sql_container" "products" {
+  account_name        = azurerm_cosmosdb_account.cosmos_app.name
+  database_name       = azurerm_cosmosdb_sql_database.products_app.name
+  name                = "products"
+  partition_key_path  = "/id"
+  resource_group_name = var.resource_group_name
+
+  # Cosmos DB supports TTL for the records
+  default_ttl = -1
+
+  indexing_policy {
+    excluded_path {
+      path = "/*"
+    }
+  }
+}
+
+resource "azurerm_cosmosdb_sql_container" "stocks" {
+  account_name        = azurerm_cosmosdb_account.cosmos_app.name
+  database_name       = azurerm_cosmosdb_sql_database.products_app.name
+  name                = "stocks"
+  partition_key_path  = "/id"
+  resource_group_name = var.resource_group_name
+
+  # Cosmos DB supports TTL for the records
+  default_ttl = -1
+
+  indexing_policy {
+    excluded_path {
+      path = "/*"
+    }
+  }
 }
 
 resource "azurerm_api_management_api_operation" "get_products" {
@@ -207,7 +283,27 @@ resource "azurerm_api_management_api_operation" "get_product_by_id" {
 
   template_parameter {
     name     = "id"
-    type     = "number"
+    type     = "string"
     required = true
   }
+}
+
+resource "azurerm_api_management_api_operation" "post_product" {
+  api_management_name = azurerm_api_management.core_apim.name
+  api_name            = azurerm_api_management_api.products_api.name
+  display_name        = "Post Products"
+  method              = "POST"
+  operation_id        = "post-products"
+  resource_group_name = var.azurerm_resource_group_apim_name
+  url_template        = "/products"
+}
+
+resource "azurerm_api_management_api_operation" "get_products_total" {
+  api_management_name = azurerm_api_management.core_apim.name
+  api_name            = azurerm_api_management_api.products_api.name
+  display_name        = "Get Products Total"
+  method              = "Get"
+  operation_id        = "get-products-total"
+  resource_group_name = var.azurerm_resource_group_apim_name
+  url_template        = "/product/total"
 }

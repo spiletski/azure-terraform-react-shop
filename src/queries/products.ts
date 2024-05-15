@@ -3,14 +3,13 @@ import API_PATHS from "~/constants/apiPaths";
 import { AvailableProduct } from "~/models/Product";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import React from "react";
-import { SUBSCRIPTION_KEY } from "../../constans";
 
 export function useAvailableProducts() {
   return useQuery<AvailableProduct[], AxiosError>(
     "available-products",
     async () => {
       const res = await axios.get<AvailableProduct[]>(
-        `${API_PATHS.bff}/products`, { headers: { 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY }}
+        `${API_PATHS.bff}/products`
       );
       return res.data;
     }
@@ -30,7 +29,7 @@ export function useAvailableProduct(id?: string) {
     ["product", { id }],
     async () => {
       const res = await axios.get<AvailableProduct>(
-        `${API_PATHS.bff}/products/${id}`, { headers: { 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY }}
+        `${API_PATHS.bff}/products/${id}`
       );
       return res.data;
     },
@@ -49,7 +48,7 @@ export function useRemoveProductCache() {
 
 export function useUpsertAvailableProduct() {
   return useMutation((values: AvailableProduct) =>
-    axios.put<AvailableProduct>(`${API_PATHS.bff}/product`, values, {
+    axios.post<AvailableProduct>(`${API_PATHS.bff}/products`, values, {
       headers: {
         Authorization: `Basic ${localStorage.getItem("authorization_token")}`,
       },
