@@ -302,8 +302,48 @@ resource "azurerm_api_management_api_operation" "get_products_total" {
   api_management_name = azurerm_api_management.core_apim.name
   api_name            = azurerm_api_management_api.products_api.name
   display_name        = "Get Products Total"
-  method              = "Get"
+  method              = "GET"
   operation_id        = "get-products-total"
   resource_group_name = var.azurerm_resource_group_apim_name
   url_template        = "/product/total"
+}
+
+/* Docs: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account */
+resource "azurerm_storage_account" "sa" {
+  name                            = "azureproductsstorage001"
+  resource_group_name             = var.resource_group_name
+  location                        = var.resource_group_location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS" /*  GRS, RAGRS, ZRS, GZRS, RAGZRS */
+  access_tier                     = "Cool"
+  enable_https_traffic_only       = true
+  allow_nested_items_to_be_public = true
+  shared_access_key_enabled       = true
+  public_network_access_enabled   = true
+
+  blob_properties {
+    cors_rule {
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT", "GET"]
+      allowed_origins    = ["*"]
+      exposed_headers    = ["*"]
+      max_age_in_seconds = 0
+    }
+  }
+}
+
+/* Docs: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container */
+resource "azurerm_storage_container" "sa_container" {
+  name                  = "import-service-container"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
+
+/* Docs: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob */
+resource "azurerm_storage_blob" "sa_blob" {
+  name                   = "import-service-blob"
+  storage_account_name   = azurerm_storage_account.sa.name
+  storage_container_name = azurerm_storage_container.sa_container.name
+  type                   = "Block"
+  access_tier            = "Cool"
 }
